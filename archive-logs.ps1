@@ -2,7 +2,7 @@ param (
     [string]$SourceFolder = $Env:SystemDrive+"\inetpub\logs\LogFiles",
     [string]$DestinationFolder = "D:\IIS_Archived_Logs",
     [string]$RuntimeLog = $env:SystemRoot+"\Logs\IISLogRotate.log",
-    [switch]$CreateLink = $true,
+    [switch]$CreateLink = $false,
     [int]$Age = -30
 )
 Start-Transcript -Append $RuntimeLog
