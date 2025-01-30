@@ -2,7 +2,7 @@ param (
     [string]$SourceFolder = $Env:SystemDrive+"\inetpub\logs\LogFiles",
     [string]$DestinationFolder = "D:\IIS_Archived_Logs",
     [string]$RuntimeLog = $env:SystemRoot+"\Logs\IISLogRotate.log",
-    [switch]$CreateLink = $false,
+    [switch]$CreateLink = $true,
     [int]$Age = -30
 )
 Start-Transcript -Append $RuntimeLog
@@ -26,14 +26,14 @@ if (Test-Path $SourceFolder){
         Write-Host $(get-date -f yyyy-MM-dd) "File" $SourceFolder\$NewPath\$File "was successfully removed"
     }
     if ($CreateLink) {
-        #New-Item -ItemType SymbolicLink -Target $DestinationFolder -Path $SourceFolder"\Archived data.lnk"
         $folderName = Split-Path -Path $DestinationFolder -Leaf
-        Write-Output $folderName
-        Write-Output $folderName".lnk"
-        cmd /c mklink /D $SourceFolder\$folderName".lnk" $DestinationFolder
+        $Args = "mklink /D "+$SourceFolder+"\"+$folderName+".lnk "+$DestinationFolder
+        if (!(Test-Path $SourceFolder\$folderName.lnk)) 
+        {
+            Start-Process cmd -ArgumentList "/c $Args"
+            Write-Host $(Get-Date -format MM/dd/yy` hh:mm:ss) "Creating symlink for" $DestinationFolder in $SourceFolder
+        }
         
-
-        Write-Host $(Get-Date -format MM/dd/yy` hh:mm:ss) "Creating symlink for" $DestinationFolder in $SourceFolder
     }
     
 } else
