@@ -2,7 +2,7 @@
     [string]$SourceFolder = $Env:SystemDrive+"\inetpub\logs\LogFiles",
     [string]$DestinationFolder = "D:\IIS_Archived_Logs",
     [string]$RuntimeLog = $env:SystemRoot+"\Logs\IISLogRotate.log",
-    [int]$Age = -7
+    [int]$Age = -30
  )
 
 if (Test-Path $SourceFolder){
