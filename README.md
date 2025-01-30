@@ -10,5 +10,5 @@ RuntimeLog = $env:SystemRoot+"\Logs\IISLogRotate.log",
 Age = -7
 
 Example
-.\logs.ps1 -SourceFolder C:\TEMP\SourceLogsLocation -DestinationFolder C:\ArchivedLogs -Age -7 -RuntimeLog C:\TEMP\Output.log 
+.\archive-logs.ps1 -SourceFolder C:\TEMP\SourceLogsLocation -DestinationFolder C:\ArchivedLogs -Age -7 -RuntimeLog C:\TEMP\Output.log 
 
