@@ -16,7 +16,7 @@ if (Test-Path $SourceFolder){
         {
             New-Item -Path "$DestinationFolder\$NewPath" -ItemType Directory
         }
-        $File | #| Copy-Item -Destination "$DestinationFolder\$NewPath" | 
+        $File | 
         Compress-Archive -Update -DestinationPath $DestinationFolder\$NewPath\Logs-$_$(get-date -f yyyy-MM-dd).zip | Remove-Item $File -Force
         Write-Host $(Get-Date -format MM/dd/yy` hh:mm:ss) $File "Compressed to" $DestinationFolder\$NewPath\Logs-$_$(get-date -f yyyy-MM-dd).zip
     }
