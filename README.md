@@ -1,6 +1,6 @@
 # iis-logs-cleanup
 IIS-CleanUp tool to make a cleanup in IIS logs directory and move old zipped logs to archive folder.
-In fact this tool may be used to any outdated files based on your retention policy.
+In fact this tool may be used to any outdated files based on your retention policy. You may use it to cleanup your Downloads folder as example.
 
 All variables are set to default IIS location, but you may override them:
 
