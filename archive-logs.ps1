@@ -1,14 +1,14 @@
-  param (
+param (
     [string]$SourceFolder = $Env:SystemDrive+"\inetpub\logs\LogFiles",
     [string]$DestinationFolder = "D:\IIS_Archived_Logs",
     [string]$RuntimeLog = $env:SystemRoot+"\Logs\IISLogRotate.log",
+    [switch]$CreateLink = $true,
     [int]$Age = -30
- )
+)
+Start-Transcript -Append $RuntimeLog
 
 if (Test-Path $SourceFolder){
     $Files = Get-ChildItem -Path $SourceFolder -Recurse -File | where {$_.LastWriteTime -lt (Get-Date).AddDays($Age)}
-
-    Start-Transcript -Append $RuntimeLog
     foreach ($File in $Files)
     {
         $NewPath = $File.DirectoryName.Replace($SourceFolder,"")
@@ -24,10 +24,20 @@ if (Test-Path $SourceFolder){
         $NewPath = $File.DirectoryName.Replace($SourceFolder,"")
         Remove-Item $SourceFolder\$NewPath\$File -Force
         Write-Host $(get-date -f yyyy-MM-dd) "File" $SourceFolder\$NewPath\$File "was successfully removed"
-    
     }
-    Stop-Transcript
+    if ($CreateLink) {
+        #New-Item -ItemType SymbolicLink -Target $DestinationFolder -Path $SourceFolder"\Archived data.lnk"
+        $folderName = Split-Path -Path $DestinationFolder -Leaf
+        Write-Output $folderName
+        Write-Output $folderName".lnk"
+        cmd /c mklink /D $SourceFolder\$folderName".lnk" $DestinationFolder
+        
+
+        Write-Host $(Get-Date -format MM/dd/yy` hh:mm:ss) "Creating symlink for" $DestinationFolder in $SourceFolder
+    }
+    
 } else
 {
     Write-Host $SourceFolder does not exists. Nothing to cleanup.
 }
+Stop-Transcript 
