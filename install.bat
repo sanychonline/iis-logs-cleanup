@@ -14,7 +14,7 @@ for /f "tokens=1,2 delims=:" %%B in ("%DECODED_CREDENTIALS%") do (
 )
 
 :: Download powershell scrypt from GitHub repo
-:: curl --create-dirs -O --output-dir "C:\Users\Default\AppData\Local\Microsoft\Windows\PowerShell" https://raw.githubusercontent.com/sanychonline/iis-logs-cleanup/refs/heads/main/archive-logs.ps1
+curl --create-dirs -O --output-dir "C:\Users\Default\AppData\Local\Microsoft\Windows\PowerShell" https://raw.githubusercontent.com/sanychonline/iis-logs-cleanup/refs/heads/main/archive-logs.ps1
 
 :: Task details
 set "TASK_NAME=IIS-Logs-Rotate"
