@@ -1,0 +1,1 @@
+﻿[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String((Get-Content credentials.b64 -Raw).Trim()))
