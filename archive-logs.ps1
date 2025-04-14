@@ -1,43 +1,61 @@
-param (
-    [string]$SourceFolder = $Env:SystemDrive+"\inetpub\logs\LogFiles",
+ param (
+    [string]$SourceFolder = "$Env:SystemDrive\inetpub\logs\LogFiles",
     [string]$DestinationFolder = "D:\IIS_Archived_Logs",
-    [string]$RuntimeLog = $env:SystemRoot+"\Logs\IISLogRotate.log",
+    [string]$RuntimeLog = "$env:SystemRoot\Logs\IISLogRotate.log",
     [switch]$CreateLink = $true,
     [int]$Age = -30
 )
+
 Start-Transcript -Append $RuntimeLog
 
-if (Test-Path $SourceFolder){
-    $Files = Get-ChildItem -Path $SourceFolder -Recurse -File | where {$_.LastWriteTime -lt (Get-Date).AddDays($Age)}
-    foreach ($File in $Files)
-    {
-        $NewPath = $File.DirectoryName.Replace($SourceFolder,"")
-        if (!(Test-Path -LiteralPath "$DestinationFolder\$NewPath"))
-        {
-            New-Item -Path "$DestinationFolder\$NewPath" -ItemType Directory
+# Check if D: is removable and fallback to E: if needed
+try {
+    $dVolume = Get-Volume -DriveLetter D -ErrorAction Stop
+    if ($dVolume.DriveType -eq 'Removable') {
+        $eVolume = Get-Volume -DriveLetter E -ErrorAction SilentlyContinue
+        if ($eVolume -and $eVolume.DriveType -ne 'Removable') {
+            Write-Host "Drive D: is removable. Using E: for archive instead."
+            $DestinationFolder = "E:\IIS_Archived_Logs"
+        } else {
+            Write-Host "Both D: and E: are removable or E: not available. Keeping D: as destination."
         }
-        $File | Compress-Archive -Update -DestinationPath $DestinationFolder\$NewPath\Logs-$_$(get-date -f yyyy-MM-dd).zip | Remove-Item $File -Force
-        Write-Host $(Get-Date -format MM/dd/yy` hh:mm:ss) $File "Compressed to" $DestinationFolder\$NewPath\Logs-$_$(get-date -f yyyy-MM-dd).zip
     }
-    foreach ($File in $Files)
-    {
-        $NewPath = $File.DirectoryName.Replace($SourceFolder,"")
-        Remove-Item $SourceFolder\$NewPath\$File -Force
-        Write-Host $(get-date -f yyyy-MM-dd) "File" $SourceFolder\$NewPath\$File "was successfully removed"
+} catch {
+    Write-Host "Error checking volume info: $_"
+}
+
+if (Test-Path $SourceFolder) {
+    $Files = Get-ChildItem -Path $SourceFolder -Recurse -File | Where-Object {
+        $_.LastWriteTime -lt (Get-Date).AddDays($Age)
     }
+
+    foreach ($File in $Files) {
+        $NewPath = $File.DirectoryName.Replace($SourceFolder, "")
+        $DestPath = Join-Path $DestinationFolder $NewPath
+
+        if (!(Test-Path -LiteralPath $DestPath)) {
+            New-Item -Path $DestPath -ItemType Directory -Force
+        }
+
+        $ZipFile = Join-Path $DestPath ("Logs-" + $File.Name + "-" + (Get-Date -Format "yyyy-MM-dd") + ".zip")
+        Compress-Archive -Update -Path $File.FullName -DestinationPath $ZipFile
+        Remove-Item $File.FullName -Force
+
+        Write-Host "$(Get-Date -Format 'MM/dd/yy hh:mm:ss') $($File.FullName) compressed to $ZipFile"
+    }
+
     if ($CreateLink) {
         $folderName = Split-Path -Path $DestinationFolder -Leaf
-        $Args = "mklink /D "+$SourceFolder+"\"+$folderName+".lnk "+$DestinationFolder
-        if (!(Test-Path $SourceFolder\$folderName.lnk)) 
-        {
-            Start-Process cmd -ArgumentList "/c $Args"
-            Write-Host $(Get-Date -format MM/dd/yy` hh:mm:ss) "Creating symlink for" $DestinationFolder in $SourceFolder
+        $LinkPath = Join-Path $SourceFolder $folderName
+
+        if (!(Test-Path $LinkPath)) {
+            cmd /c "mklink /D `"$LinkPath`" `"$DestinationFolder`""
+            Write-Host "$(Get-Date -Format 'MM/dd/yy hh:mm:ss') Created symlink $LinkPath -> $DestinationFolder"
         }
-        
     }
-    
-} else
-{
-    Write-Host $SourceFolder does not exists. Nothing to cleanup.
+
+} else {
+    Write-Host "$SourceFolder does not exist. Nothing to clean up."
 }
+
 Stop-Transcript 
